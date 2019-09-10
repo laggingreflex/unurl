@@ -1,6 +1,8 @@
 # unurl
 
-Simple [undb]-based reactive URL-like object
+Simple reactive [URL] object
+
+<sup>Note: uses [Proxy], check [browser support][proxy-support] before using.</sup>
 
 ## Install
 
@@ -13,30 +15,32 @@ npm i unurl
 ```js
 const { url, onChange } = require('unurl')
 
-url.pathname = '/new-path'
-
 onChange(() => {
   // Fires when url changes
 })
+
+function changeURL() {
+  url.pathname = '/new-path'
+  url.searchParams.append('foo', 'bar')
+}
 ```
 ```js
 const { url } = require('unurl')
-const connect = require('unurl/connect')
+const { connect } = require('unurl/react')
 
-const ReactComponent = () => {
+const ReactComponentConnectStyle = connect(() => {
   // re-renders when url changes
-}
-
-export default connect(ReactComponent)
+})
 ```
 ```jsx
-const { useUrl } = require('unurl/hooks')
+const { useUrl } = require('unurl/react')
 
-const ReactComponent = () => {
+const ReactComponentEffectStyle = () => {
   const url = useUrl()
   // re-renders when url changes
 }
 ```
 
-
-[undb]: https://github.com/laggingreflex/undb
+[URL]: https://developer.mozilla.org/en-US/docs/Web/API/URL
+[Proxy]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+[proxy-support]: http://caniuse.com/proxy

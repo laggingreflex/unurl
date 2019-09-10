@@ -1,61 +1,48 @@
-const undb = require('undb');
+const patchedURLSearchParamsMethods = ['append', 'delete', 'set'];
+const registeredCallbacks = new Set;
+const url = create();
 
-const unWritableKeys = ['origin', 'searchParams'];
-const unWatchableKeys = ['searchParams', 'toJSON', 'toString'];
+module.exports = { url, onChange: register };
 
-const [url, onChange] = undb({ initial: createUrl() });
-
-onChange(syncUrl);
-
-/* Exports */
-
-module.exports = {
-  url,
-  onChange,
-};
-
-/* Functions */
-
-function createUrl(href = location.href) {
-  const url = new URL(href)
-  const ret = {}
-  for (const key in url) {
-    if (unWatchableKeys.includes(key)) continue;
-    ret[key] = url[key];
-  }
-  ret.params = createParams(url.searchParams);
-  return ret;
+function register(callback) {
+  registeredCallbacks.add(callback);
+  return () => registeredCallbacks.delete(callback);
 }
 
-function createParams(searchParams) {
-  /* Convert URLSearchParams object into plain key-value object */
-  return Array.from(searchParams.entries()).reduce((params, [key, value]) => ({
-    ...params,
-    [key]: value
-  }), {})
-}
-
-function updateParams(params, searchParams) {
-  /* Update the URLSearchParams object from plain key-value object */
-  for (const key in params) {
-    searchParams.set(key, params[key])
+function onChange(url) {
+  for (const callback of registeredCallbacks) {
+    callback(url);
   }
 }
 
-function updateUrl(oldUrl, href = oldUrl.href) {
-  const newUrl = new URL(href)
-  for (const key in newUrl) {
-    if (unWritableKeys.includes(key)) continue
-    newUrl[key] = oldUrl[key]
-    /* URL does internal adjustments, like automatically add "#" to .hash (even if the user hadn't) */
-    /* So the updated properties need to be copied back for consistency and expected behaviour */
-    oldUrl[key] = newUrl[key]
-  }
-  updateParams(oldUrl.params, newUrl.searchParams)
-  return createUrl(newUrl.href)
-}
+function create(href = location.href) {
+  const proxy = new Proxy(new URL(href), { get, set });
+  return proxy;
 
-function syncUrl(url, state = history.state) {
-  const newUrl = updateUrl(url);
-  history.replaceState(state, '', newUrl.href)
+  function get(target, key) {
+    const value = Reflect.get(target, key);
+    if (key === 'searchParams') {
+      const searchParams = value;
+      for (const methodName of patchedURLSearchParamsMethods) {
+        const method = searchParams[methodName];
+        searchParams[methodName] = function() {
+          try {
+            return Reflect.apply(method, this, arguments);
+          } finally {
+            onChange(proxy);
+          }
+        }
+      }
+    } else {
+      return value
+    }
+  }
+
+  function set(target, key, value) {
+    try {
+      return Reflect.set(target, key, value);
+    } finally {
+      onChange(proxy);
+    }
+  }
 }

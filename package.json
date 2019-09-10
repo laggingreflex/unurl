@@ -4,9 +4,6 @@
   "description": "Simple reactive URL-like object",
   "main": "index.js",
   "repository": "laggingreflex/unurl",
-  "dependencies": {
-    "undb": "^0.12.0"
-  },
   "peerDependencies": {
     "react": "*"
   }
