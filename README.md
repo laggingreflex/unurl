@@ -41,6 +41,71 @@ const ReactComponentEffectStyle = () => {
 }
 ```
 
+## API
+
+```
+const { url, onChange, listen } = require('unurl')
+```
+
+### **`url`**
+
+A [Proxy] of [new URL][URL] that fires [onChange] whenever a property is changed.
+
+* **`@property {string} hostname`**  A String containing the domain of the URL.
+* **`@property {string} pathname`**      A String containing an initial '/' followed by the path of the URL.
+* ...[URL#Properties]
+
+### **`onChange`**
+
+A function to register a callback that's fired whenever [url] is changed, or when [listening][listen] to browser events.
+
+* **`@param {function} callback`** Callback to fire when [url] changes
+* **`@returns {function} unRegister`** Frees the `callback` from firing anymore
+
+### **`listen`**
+
+Listen to browser events: [click] (on an [\<a>] element), [popstate], and [hashchange] to fire [onChange].
+
+* **`@param {object} [opts]`**
+* **`@param {Boolean} [opts.click=true]`** Listen to [click] events on all [\<a>] elements. Will [prevent][preventDefault] if `href` is from the same (current) hostname.
+* **`@returns {function} removeListener`** Removes and frees the attached event listeners
+
+## React API
+
+[React]-specific helper functions.
+
+```
+const { connect, useUrl } = require('unurl/react')
+```
+
+### **`connect`**
+
+Converts a [React] [Component] into one that re-renders whenever [url] changes.
+
+* **`@param {ReactComponent|Function} component`** React Component or a function to wrap
+* **`@returns {ReactComponent} component`** Wrapper Component that renders the above `component`
+
+### **`useUrl`**
+
+A React [Hook] that updates whenever [url] changes.
+
+
+[url]: #url
+[onChange]: #onChange
+[listen]: #listen
+
 [URL]: https://developer.mozilla.org/en-US/docs/Web/API/URL
+[URL#Properties]: https://developer.mozilla.org/en-US/docs/Web/API/URL#Properties
 [Proxy]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 [proxy-support]: http://caniuse.com/proxy
+[searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+
+[click]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
+[\<a>]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
+[preventDefault]: https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault
+[popstate]: https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event
+[hashchange]: https://developer.mozilla.org/en-US/docs/Web/API/Window/hashchange_event
+
+[React]: https://reactjs.org
+[Component]: https://reactjs.org/docs/react-component.html
+[Hook]: https://reactjs.org/docs/hooks-intro.html
