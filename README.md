@@ -67,7 +67,7 @@ A function to register a callback that's fired whenever [url] is changed, or whe
 Listen to browser events: [click] (on an [\<a>] element), [popstate], and [hashchange] to fire [onChange].
 
 * **`@param {object} [opts]`**
-* **`@param {Boolean} [opts.click=true]`** Listen to [click] events on all [\<a>] elements. Will [prevent][preventDefault] if `href` is from the same (current) hostname.
+* **`@param {Boolean|Object} [opts.click={}]`** Listen to [click] events on all [\<a>] elements. Will [prevent][preventDefault] if `href` is from the same (current) hostname. Options will be passed to [addEventListener].
 * **`@returns {function} removeListener`** Removes and frees the attached event listeners
 
 ## React API
@@ -103,6 +103,7 @@ A React [Hook] that updates whenever [url] changes.
 [click]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click
 [\<a>]: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a
 [preventDefault]: https://developer.mozilla.org/en-US/docs/Web/API/Event/preventDefault
+[addEventListener]: https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
 [popstate]: https://developer.mozilla.org/en-US/docs/Web/API/Window/popstate_event
 [hashchange]: https://developer.mozilla.org/en-US/docs/Web/API/Window/hashchange_event
 

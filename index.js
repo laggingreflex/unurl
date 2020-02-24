@@ -48,14 +48,14 @@ function create(href = location.href) {
   }
 }
 
-function listen({ click = true } = {}) {
-  if (click) {
-    window.addEventListener('click', onClick);
+function listen({ click: onClickOpts = {} } = {}) {
+  if (onClickOpts) {
+    window.addEventListener('click', onClick, onClickOpts);
   }
   window.addEventListener('hashchange', onBrowserChange);
   window.addEventListener('popstate', onBrowserChange);
   return () => {
-    if (click) {
+    if (onClickOpts) {
       window.removeEventListener('click', onClick);
     }
     window.removeEventListener('hashchange', onBrowserChange);
