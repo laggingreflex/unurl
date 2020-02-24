@@ -2,7 +2,7 @@ const patchedURLSearchParamsMethods = ['append', 'delete', 'set'];
 const registeredCallbacks = new Set;
 const url = create();
 
-module.exports = { url, onChange: register };
+module.exports = { url, onChange: register, listen };
 
 function register(callback) {
   registeredCallbacks.add(callback);
@@ -46,4 +46,34 @@ function create(href = location.href) {
       onChange(proxy);
     }
   }
+}
+
+function listen({ click = true } = {}) {
+  if (click) {
+    window.addEventListener('click', onClick);
+  }
+  window.addEventListener('hashchange', onBrowserChange);
+  window.addEventListener('popstate', onBrowserChange);
+  return () => {
+    if (click) {
+      window.removeEventListener('click', onClick);
+    }
+    window.removeEventListener('hashchange', onBrowserChange);
+    window.removeEventListener('popstate', onBrowserChange);
+  }
+}
+
+function onClick(e) {
+  if (e.target.tagName === 'A') {
+    const href = e.target.href;
+    if (href.startsWith(document.location.origin)) {
+      e.preventDefault();
+      history.pushState({}, '', href);
+      url.href = href;
+    }
+  }
+}
+
+function onBrowserChange() {
+  url.href = window.location.href;
 }
