@@ -56,7 +56,7 @@ function createUrl(href = location.href) {
 }
 
 function createSearchParams() {
-  const proxy = new Proxy({}, { get, set });
+  const proxy = new Proxy({}, { get, set, deleteProperty });
   return proxy;
 
   function get(target, key) {
@@ -64,12 +64,12 @@ function createSearchParams() {
   }
 
   function set(target, key, value) {
-    value = stringify(value);
-    if (value === false || 'false' === value) {
-      url.searchParams.delete(key);
-    } else {
-      url.searchParams.set(key, value);
-    }
+    url.searchParams.set(key, stringify(value));
+    return true;
+  }
+
+  function deleteProperty(target, key) {
+    url.searchParams.delete(key);
     return true;
   }
 }
