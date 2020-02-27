@@ -64,7 +64,7 @@ Querystring  | Object            | Remark
 `?a=b`       | `{ a: 'b' }`      | `key=value` converted to `{ key: value }`
 `?a=1`       | `{ a: 1 }`        | JSON parsed (~~`'1'`~~ `1`)
 `?a`, `?a=`  | `{ a: true }`     | Existence of key inferred as value `true`
-`?a=b,1`     | `{ a: ['b', 1] }` | Comma-separated parsed as array
+`?a=1,b`     | `{ a: [1, 'b'] }` | Comma-separated parsed as array
 
 
 
