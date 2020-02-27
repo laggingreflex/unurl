@@ -2,7 +2,6 @@ const patchedURLSearchParamsMethods = ['append', 'delete', 'set'];
 const registeredCallbacks = new Set;
 const symbol = { proxied: Symbol('proxied') };
 const url = createUrl();
-let searchParamsBase;
 const searchParams = createSearchParams();
 
 module.exports = { url, searchParams, onChange: register, listen };
@@ -39,8 +38,7 @@ function createUrl(href = location.href) {
             }
           }
         }
-        searchParams[methodName][symbol.proxied] = true
-        Object.defineProperty(searchParams[methodName], 'name', { value: methodName });
+        searchParams[methodName][symbol.proxied] = true;
       }
       return searchParams;
     } else {
@@ -52,16 +50,18 @@ function createUrl(href = location.href) {
     try {
       return Reflect.set(target, key, value);
     } finally {
-      resetObject(searchParamsBase, searchParamsToObject());
       onChange(proxy);
     }
   }
 }
 
-function createSearchParams(from = (url.searchParams || new URLSearchParams(location.search))) {
-  searchParamsBase = searchParamsToObject(from);
-  const proxy = new Proxy(searchParamsBase, { set });
+function createSearchParams() {
+  const proxy = new Proxy({}, { get, set });
   return proxy;
+
+  function get(target, key) {
+    return searchParamsToObject()[key];
+  }
 
   function set(target, key, value) {
     value = stringify(value);
@@ -70,7 +70,6 @@ function createSearchParams(from = (url.searchParams || new URLSearchParams(loca
     } else {
       url.searchParams.set(key, value);
     }
-    resetObject(searchParamsBase, searchParamsToObject());
     return true;
   }
 }
@@ -80,7 +79,6 @@ function searchParamsToObject(searchParams = url.searchParams || new URLSearchPa
   for (let [key, value] of searchParams.entries()) {
     value = parse(value);
     if (object[key]) {
-      const arrify = array => Array.isArray(array) ? array : array === undefined ? [] : [array];
       object[key] = [...arrify(object[key]), ...arrify(value)];
     } else {
       object[key] = value;
@@ -93,9 +91,9 @@ function parse(value) {
   try {
     value = JSON.parse(value);
   } catch (error) {}
-  if (value === '') return true;
+  if (value === '') value = true;
   if (typeof value === 'string' && value.includes(',')) try {
-    return value.split(',').map(parse);
+    value = value.split(',').map(parse);
   } catch (error) {}
   return value;
 }
@@ -151,4 +149,10 @@ function onClick(e) {
 
 function onBrowserChange() {
   url.href = window.location.href;
+}
+
+function arrify(array) {
+  return Array.isArray(array) ? array
+    : array === undefined ? []
+    : [array];
 }
