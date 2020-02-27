@@ -19,7 +19,8 @@ function onChange(url) {
 }
 
 function createUrl(href = location.href) {
-  const proxy = new Proxy(new URL(href), { get, set });
+  const urlBase = new URL(href);
+  const proxy = new Proxy(urlBase, { get, set });
   return proxy;
 
   function get(target, key) {
@@ -58,21 +59,8 @@ function createSearchParams(from = (url.searchParams || new URLSearchParams(loca
   return proxy;
 
   function set(target, key, value) {
-    if (typeof value === 'boolean') {
-      if (value) value = '';
-    }
-    if (Array.isArray(value)) {
-      value = value.map(value => {
-        if (typeof value !== 'string') {
-          value = JSON.stringify(value);
-        }
-        return value;
-      }).join(',');
-    }
-    if (typeof value !== 'string') {
-      value = JSON.stringify(value);
-    }
-    if (value === false) {
+    value = stringify(value);
+    if (value === false || 'false' === value) {
       url.searchParams.delete(key);
     } else {
       url.searchParams.set(key, value);
@@ -86,25 +74,7 @@ function createSearchParams(from = (url.searchParams || new URLSearchParams(loca
 function searchParamsToObject(searchParams = url.searchParams || new URLSearchParams(location.search)) {
   const object = {};
   for (let [key, value] of searchParams.entries()) {
-    try {
-      value = JSON.parse(value);
-    } catch (error) {}
-    if (value === '') value = true;
-    if (typeof value === 'string' && value.includes(',')) try {
-      value = value.split(',');
-    } catch (error) {}
-    if (Array.isArray(value)) {
-      value = value.map(value => {
-        try {
-          const parsed = JSON.parse(value);
-          // console.log({ value, parsed });
-          if (parsed === '') return true;
-          else return parsed;
-        } catch (error) {
-          return value;
-        }
-      })
-    }
+    value = parse(value);
     if (object[key]) {
       const arrify = array => Array.isArray(array) ? array : array === undefined ? [] : [array];
       object[key] = [...arrify(object[key]), ...arrify(value)];
@@ -113,6 +83,33 @@ function searchParamsToObject(searchParams = url.searchParams || new URLSearchPa
     }
   }
   return object;
+}
+
+function parse(value) {
+  try {
+    value = JSON.parse(value);
+  } catch (error) {}
+  if (value === '') return true;
+  if (typeof value === 'string' && value.includes(',')) try {
+    return value.split(',').map(parse);
+  } catch (error) {}
+  return value;
+}
+
+function stringify(value) {
+  if (typeof value === 'boolean' && value) {
+    value = '';
+  }
+  if (Array.isArray(value)) {
+    return value.map(stringify).join(',');
+  }
+  if (value === null || undefined === value) {
+    value = false;
+  }
+  // if (typeof value !== 'string') {
+  //   value = JSON.stringify(value);
+  // }
+  return value;
 }
 
 function resetObject(oldObject, newObject) {
