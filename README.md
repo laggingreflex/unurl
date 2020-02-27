@@ -61,9 +61,9 @@ A [Proxy] of [new URL][URL] that fires [onChange] whenever a property is changed
 
 Querystring  | Object            | Remark
 -------------|-------------------|----------------
-`?a`         | `{ a: true }`     | Boolean converted
-`?a=b`       | `{ a: 'b' }`      |
-`?a=1`       | `{ a: 1 }`        | JSON parsed
+`?a=b`       | `{ a: 'b' }`      | `key=value` converted to `{ key: value }`
+`?a=1`       | `{ a: 1 }`        | JSON parsed (~~`'1'`~~ `1`)
+`?a`, `?a=`  | `{ a: true }`     | Existence of key inferred as value `true`
 `?a=b,1`     | `{ a: ['b', 1] }` | Comma-separated parsed as array
 
 
