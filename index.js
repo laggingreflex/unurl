@@ -1,5 +1,6 @@
 const patchedURLSearchParamsMethods = ['append', 'delete', 'set'];
 const registeredCallbacks = new Set;
+const symbol = { proxied: Symbol('proxied') };
 const url = createUrl();
 let searchParamsBase;
 const searchParams = createSearchParams();
@@ -29,13 +30,17 @@ function createUrl(href = location.href) {
       const searchParams = value;
       for (const methodName of patchedURLSearchParamsMethods) {
         const method = searchParams[methodName];
-        searchParams[methodName] = function() {
-          try {
-            return Reflect.apply(method, this, arguments);
-          } finally {
-            onChange(proxy);
+        if (!method[symbol.proxied]) {
+          searchParams[methodName] = function() {
+            try {
+              return Reflect.apply(method, this, arguments);
+            } finally {
+              onChange(proxy);
+            }
           }
         }
+        searchParams[methodName][symbol.proxied] = true
+        Object.defineProperty(searchParams[methodName], 'name', { value: methodName });
       }
       return searchParams;
     } else {
@@ -66,7 +71,6 @@ function createSearchParams(from = (url.searchParams || new URLSearchParams(loca
       url.searchParams.set(key, value);
     }
     resetObject(searchParamsBase, searchParamsToObject());
-    onChange(url);
     return true;
   }
 }
