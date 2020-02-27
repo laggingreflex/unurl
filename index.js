@@ -1,8 +1,10 @@
 const patchedURLSearchParamsMethods = ['append', 'delete', 'set'];
 const registeredCallbacks = new Set;
-const url = create();
+const url = createUrl();
+let searchParamsBase;
+const searchParams = createSearchParams();
 
-module.exports = { url, onChange: register, listen };
+module.exports = { url, searchParams, onChange: register, listen };
 
 function register(callback) {
   registeredCallbacks.add(callback);
@@ -16,7 +18,7 @@ function onChange(url) {
   }
 }
 
-function create(href = location.href) {
+function createUrl(href = location.href) {
   const proxy = new Proxy(new URL(href), { get, set });
   return proxy;
 
@@ -43,9 +45,80 @@ function create(href = location.href) {
     try {
       return Reflect.set(target, key, value);
     } finally {
+      resetObject(searchParamsBase, searchParamsToObject());
       onChange(proxy);
     }
   }
+}
+
+function createSearchParams(from = (url.searchParams || new URLSearchParams(location.search))) {
+  searchParamsBase = searchParamsToObject(from);
+  const proxy = new Proxy(searchParamsBase, { set });
+  return proxy;
+
+  function set(target, key, value) {
+    if (typeof value === 'boolean') {
+      if (value) value = '';
+    }
+    if (Array.isArray(value)) {
+      value = value.map(value => {
+        if (typeof value !== 'string') {
+          value = JSON.stringify(value);
+        }
+        return value;
+      }).join(',');
+    }
+    if (typeof value !== 'string') {
+      value = JSON.stringify(value);
+    }
+    if (value === false) {
+      url.searchParams.delete(key);
+    } else {
+      url.searchParams.set(key, value);
+    }
+    resetObject(searchParamsBase, searchParamsToObject());
+    onChange(url);
+    return true;
+  }
+}
+
+function searchParamsToObject(searchParams = url.searchParams || new URLSearchParams(location.search)) {
+  const object = {};
+  for (let [key, value] of searchParams.entries()) {
+    try {
+      value = JSON.parse(value);
+    } catch (error) {}
+    if (value === '') value = true;
+    if (typeof value === 'string' && value.includes(',')) try {
+      value = value.split(',');
+    } catch (error) {}
+    if (Array.isArray(value)) {
+      value = value.map(value => {
+        try {
+          const parsed = JSON.parse(value);
+          // console.log({ value, parsed });
+          if (parsed === '') return true;
+          else return parsed;
+        } catch (error) {
+          return value;
+        }
+      })
+    }
+    if (object[key]) {
+      const arrify = array => Array.isArray(array) ? array : array === undefined ? [] : [array];
+      object[key] = [...arrify(object[key]), ...arrify(value)];
+    } else {
+      object[key] = value;
+    }
+  }
+  return object;
+}
+
+function resetObject(oldObject, newObject) {
+  for (const key in oldObject) {
+    delete oldObject[key];
+  }
+  Object.assign(oldObject, newObject);
 }
 
 function listen({ click: onClickOpts = {} } = {}) {

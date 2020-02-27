@@ -44,7 +44,7 @@ const ReactComponentEffectStyle = () => {
 ## API
 
 ```
-const { url, onChange, listen } = require('unurl')
+const { url, searchParams, onChange, listen } = require('unurl')
 ```
 
 ### **`url`**
@@ -54,6 +54,19 @@ A [Proxy] of [new URL][URL] that fires [onChange] whenever a property is changed
 * **`@property {string} hostname`**  A String containing the domain of the URL.
 * **`@property {string} pathname`**      A String containing an initial '/' followed by the path of the URL.
 * ...[URL#Properties]
+
+### **`searchParams`**
+
+[searchParams] but in an object-form with values parsed for easier consumption.
+
+Querystring  | Object            | Remark
+-------------|-------------------|----------------
+`?a`         | `{ a: true }`     | Boolean converted
+`?a=b`       | `{ a: 'b' }`      |
+`?a=1`       | `{ a: 1 }`        | JSON parsed
+`?a=b,1`     | `{ a: ['b', 1] }` | Comma-separated parsed as array
+
+
 
 ### **`onChange`**
 
@@ -96,6 +109,7 @@ A React [Hook] that updates whenever [url] changes.
 
 [URL]: https://developer.mozilla.org/en-US/docs/Web/API/URL
 [URL#Properties]: https://developer.mozilla.org/en-US/docs/Web/API/URL#Properties
+[searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
 [Proxy]: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 [proxy-support]: http://caniuse.com/proxy
 [searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
