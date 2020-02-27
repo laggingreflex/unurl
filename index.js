@@ -36,6 +36,7 @@ function createUrl(href = location.href) {
           }
         }
       }
+      return searchParams;
     } else {
       return value
     }
