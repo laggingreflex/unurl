@@ -1,6 +1,6 @@
 {
   "name": "unurl",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Simple reactive URL-like object",
   "main": "index.js",
   "repository": "laggingreflex/unurl",
