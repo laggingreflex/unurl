@@ -137,8 +137,9 @@ function listen({ click: onClickOpts = {} } = {}) {
 }
 
 function onClick(e) {
-  if (e.target.tagName === 'A') {
-    const href = e.target.href;
+  let { target } = e;
+  if (target.tagName === 'A' || (target = target.closest('a'))) {
+    const href = target.href;
     if (href.startsWith(document.location.origin)) {
       e.preventDefault();
       history.pushState({}, '', href);
