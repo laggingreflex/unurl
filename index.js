@@ -55,6 +55,10 @@ function createUrl(href = location.href) {
   }
 }
 
+function go(delta = 0) {
+
+}
+
 function createSearchParams() {
   const proxy = new Proxy({}, { get, set, deleteProperty });
   return proxy;
