@@ -12,7 +12,7 @@ function register(callback) {
 }
 
 function onChange(url) {
-  history.replaceState(history.state, '', url.href)
+  history.pushState(history.state, '', url.href)
   for (const callback of registeredCallbacks) {
     callback(url);
   }
