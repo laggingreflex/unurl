@@ -1,7 +1,7 @@
 const patchedURLSearchParamsMethods = ['append', 'delete', 'set'];
 const registeredCallbacks = new Set;
 const symbol = { proxied: Symbol('proxied') };
-const url = createUrl();
+const { urlBase, proxy: url } = createUrl();
 const searchParams = createSearchParams();
 
 module.exports = { url, searchParams, onChange: register, listen };
@@ -21,7 +21,7 @@ function onChange(url) {
 function createUrl(href = location.href) {
   const urlBase = new URL(href);
   const proxy = new Proxy(urlBase, { get, set });
-  return proxy;
+  return { urlBase, proxy };
 
   function get(target, key) {
     const value = Reflect.get(target, key);
@@ -125,14 +125,14 @@ function listen({ click: onClickOpts = {} } = {}) {
   if (onClickOpts) {
     window.addEventListener('click', onClick, onClickOpts);
   }
-  window.addEventListener('hashchange', onBrowserChange);
-  window.addEventListener('popstate', onBrowserChange);
+  window.addEventListener('hashchange', onHashChange);
+  window.addEventListener('popstate', onPopState);
   return () => {
     if (onClickOpts) {
       window.removeEventListener('click', onClick);
     }
-    window.removeEventListener('hashchange', onBrowserChange);
-    window.removeEventListener('popstate', onBrowserChange);
+    window.removeEventListener('hashchange', onHashChange);
+    window.removeEventListener('popstate', onPopState);
   }
 }
 
@@ -142,14 +142,20 @@ function onClick(e) {
     const href = target.href;
     if (href.startsWith(document.location.origin)) {
       e.preventDefault();
-      history.pushState({}, '', href);
       url.href = href;
     }
   }
 }
 
-function onBrowserChange() {
+function onHashChange() {
   url.href = window.location.href;
+}
+
+function onPopState() {
+  urlBase.href = window.location.href;
+  for (const callback of registeredCallbacks) {
+    callback(url);
+  }
 }
 
 function arrify(array) {
