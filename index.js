@@ -4,7 +4,7 @@ const symbol = { proxied: Symbol('proxied') };
 const { urlBase, proxy: url } = createUrl();
 const searchParams = createSearchParams();
 
-module.exports = { url, searchParams, onChange: register, listen };
+module.exports = { url, searchParams, onChange: register, listen, set: setLocation };
 
 function register(callback) {
   registeredCallbacks.add(callback);
@@ -134,6 +134,11 @@ function listen({ click: onClickOpts = {} } = {}) {
     window.removeEventListener('hashchange', onHashChange);
     window.removeEventListener('popstate', onPopState);
   }
+}
+
+function setLocation(location) {
+  if (location.startsWith('/')) location = document.location.origin + location;
+  url.href = location;
 }
 
 function onClick(e) {
