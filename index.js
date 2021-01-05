@@ -3,8 +3,9 @@ const registeredCallbacks = new Set;
 const symbol = { proxied: Symbol('proxied') };
 const { urlBase, proxy: url } = createUrl();
 const searchParams = createSearchParams();
+const searchParamsWithHash = createSearchParams({ useHash: true });
 
-module.exports = { url, searchParams, onChange: register, listen, set: setLocation };
+module.exports = { url, searchParams, searchParamsWithHash, createSearchParams, onChange: register, listen, set: setLocation };
 
 function register(callback) {
   registeredCallbacks.add(callback);
@@ -55,12 +56,16 @@ function createUrl(href = location.href) {
   }
 }
 
-function createSearchParams() {
+function createSearchParams({ useHash } = {}) {
   const proxy = new Proxy({}, { get, set, deleteProperty });
   return proxy;
 
   function get(target, key) {
-    return searchParamsToObject()[key];
+    if (useHash) {
+      return searchParamsToObject(new URLSearchParams(location.search + location.hash))[key];
+    } else {
+      return searchParamsToObject()[key];
+    }
   }
 
   function set(target, key, value) {
