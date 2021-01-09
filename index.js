@@ -49,6 +49,10 @@ function createUrl(href = location.href) {
 
   function set(target, key, value) {
     try {
+      if (key === 'href' && !value.startsWith('http')) {
+        const newUrl = new URL(value, target.origin);
+        value = newUrl.href
+      }
       return Reflect.set(target, key, value);
     } finally {
       onChange(proxy);
